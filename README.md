@@ -1,6 +1,12 @@
-# Peaklight
+<p align="center">
+  <img src="icon.png" alt="Peaklight icon" width="160" height="160">
+</p>
 
-Raise the peak, keep the floor.
+<h1 align="center">Peaklight</h1>
+
+<p align="center">
+  Raise the peak, keep the floor.
+</p>
 
 Peaklight is a lightweight macOS menu-bar app for boosting SDR peak brightness on XDR-capable displays without gamma-table hacks. The first implementation uses a low-overhead EDR Metal overlay with multiply compositing, capped at about 800 nits by default.
 
@@ -54,6 +60,7 @@ Scripts/package-app.sh
 ```
 
 Set `INSTALL_DIR=/Applications` if you want a system-wide install instead.
+The packaging script generates `Peaklight.icns` from `icon.png` and embeds it in the app bundle.
 
 ## Current Scope
 
