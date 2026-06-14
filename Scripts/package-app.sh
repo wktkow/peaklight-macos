@@ -1,9 +1,11 @@
 #!/bin/sh
 set -eu
+export COPYFILE_DISABLE=1
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 CONFIGURATION="${CONFIGURATION:-release}"
 PRODUCT_NAME="Peaklight"
+APP_VERSION="1.0.0"
 BUILD_DIR="$ROOT_DIR/.build/$CONFIGURATION"
 DIST_DIR="$ROOT_DIR/.build/dist"
 APP_PATH="$DIST_DIR/$PRODUCT_NAME.app"
@@ -41,7 +43,7 @@ if [ -f "$ICON_SOURCE" ]; then
     iconutil -c icns "$ICONSET_PATH" -o "$ICON_PATH"
 fi
 
-cat > "$APP_PATH/Contents/Info.plist" <<'PLIST'
+cat > "$APP_PATH/Contents/Info.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -61,9 +63,9 @@ cat > "$APP_PATH/Contents/Info.plist" <<'PLIST'
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>0.1.0</string>
+    <string>$APP_VERSION</string>
     <key>CFBundleVersion</key>
-    <string>2</string>
+    <string>100</string>
     <key>LSApplicationCategoryType</key>
     <string>public.app-category.utilities</string>
     <key>LSMinimumSystemVersion</key>
@@ -84,7 +86,11 @@ fi
 
 mkdir -p "$INSTALL_DIR"
 rm -rf "$INSTALL_PATH"
-cp -R "$APP_PATH" "$INSTALL_PATH"
+if command -v ditto >/dev/null 2>&1; then
+    ditto --norsrc --noextattr "$APP_PATH" "$INSTALL_PATH"
+else
+    cp -R "$APP_PATH" "$INSTALL_PATH"
+fi
 
 if command -v xattr >/dev/null 2>&1; then
     xattr -dr com.apple.quarantine "$INSTALL_PATH" 2>/dev/null || true

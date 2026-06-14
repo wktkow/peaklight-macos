@@ -62,6 +62,12 @@ Scripts/package-app.sh
 Set `INSTALL_DIR=/Applications` if you want a system-wide install instead.
 The packaging script generates `Peaklight.icns` from `icon.png` and embeds it in the app bundle.
 
+To build a signed app bundle and installer package for release:
+
+```sh
+Scripts/package-pkg.sh
+```
+
 ## Current Scope
 
 Implemented:
@@ -75,13 +81,14 @@ Implemented:
 - Kill switch.
 - Opt-in brightness-key interception, requiring Accessibility permission at runtime.
 - Runnable policy checks for the brightness model.
+- App bundle and installer package generation.
 
 Not implemented yet:
 
 - Native 0 to 500 nit brightness control.
 - A real pixel-aware Shadow-Safe boost curve.
 - HDR-video detection or auto-disable.
-- App bundle packaging, notarization, DMG, Homebrew cask, or launch-at-login registration.
+- Notarization, DMG, Homebrew cask, or launch-at-login registration.
 
 ## Safety Model
 

@@ -7,6 +7,7 @@ public final class MenuController: NSObject {
     public var onToggleThermalCaps: ((Bool) -> Void)?
     public var onToggleKeyboardControl: ((Bool) -> Void)?
     public var onToggleDefaultBoost: (() -> Void)?
+    public var onShowVersion: (() -> Void)?
     public var onKillSwitch: (() -> Void)?
     public var onQuit: (() -> Void)?
 
@@ -144,6 +145,10 @@ public final class MenuController: NSObject {
         menu.addItem(launchAtLogin)
 
         menu.addItem(.separator())
+        let version = NSMenuItem(title: "Show Version", action: #selector(showVersion), keyEquivalent: "")
+        version.target = self
+        menu.addItem(version)
+
         let killSwitch = NSMenuItem(title: "Kill Switch", action: #selector(runKillSwitch), keyEquivalent: "")
         killSwitch.target = self
         menu.addItem(killSwitch)
@@ -194,6 +199,10 @@ public final class MenuController: NSObject {
 
     @objc private func toggleDefaultBoost() {
         onToggleDefaultBoost?()
+    }
+
+    @objc private func showVersion() {
+        onShowVersion?()
     }
 
     @objc private func runKillSwitch() {

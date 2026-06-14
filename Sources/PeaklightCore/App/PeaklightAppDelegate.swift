@@ -12,6 +12,7 @@ public final class PeaklightAppDelegate: NSObject, NSApplicationDelegate {
     private var keyboardController: KeyboardController?
     private var latestDisplays: [DisplaySnapshot] = []
     private var keyboardMessage: String?
+    private var aboutWindowController: AboutWindowController?
 
     public override init() {
         let settings = PeaklightSettings()
@@ -93,6 +94,9 @@ public final class PeaklightAppDelegate: NSObject, NSApplicationDelegate {
         }
         menuController.onToggleDefaultBoost = { [weak self] in
             self?.brightnessController.toggleDefaultBoost()
+        }
+        menuController.onShowVersion = { [weak self] in
+            self?.showVersionWindow()
         }
         menuController.onKillSwitch = { [weak self] in
             self?.brightnessController.killSwitch()
@@ -215,6 +219,14 @@ public final class PeaklightAppDelegate: NSObject, NSApplicationDelegate {
             brightnessController.decrease()
             return true
         }
+    }
+
+    private func showVersionWindow() {
+        let controller = AboutWindowController()
+        aboutWindowController = controller
+        controller.showWindow(nil)
+        controller.window?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
     }
 }
 
