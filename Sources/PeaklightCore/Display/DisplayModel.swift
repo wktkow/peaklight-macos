@@ -15,6 +15,10 @@ public struct DisplaySnapshot: Equatable, Identifiable {
         max(1.0, currentEDRHeadroom)
     }
 
+    public var boostEDRHeadroom: Double {
+        max(usableEDRHeadroom, potentialEDRHeadroom)
+    }
+
     public init(
         id: UInt32,
         name: String,
@@ -49,7 +53,7 @@ public final class DisplayModel {
 
     public func maximumUsableEDRHeadroom() -> Double {
         let edrDisplays = currentDisplays().filter(\.isEDRCapable)
-        return edrDisplays.map(\.usableEDRHeadroom).max() ?? 1.0
+        return edrDisplays.map(\.boostEDRHeadroom).max() ?? 1.0
     }
 
     public static func screenID(for screen: NSScreen) -> UInt32 {

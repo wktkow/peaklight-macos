@@ -142,7 +142,7 @@ public final class PeaklightAppDelegate: NSObject, NSApplicationDelegate {
         latestDisplays = displayModel.currentDisplays()
         let headroom = latestDisplays
             .filter(\.isEDRCapable)
-            .map(\.usableEDRHeadroom)
+            .map(\.boostEDRHeadroom)
             .max() ?? 1.0
         brightnessController.updateAvailableEDRHeadroom(headroom)
     }

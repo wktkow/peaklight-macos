@@ -101,7 +101,7 @@ public struct BrightnessPolicy: Equatable {
         sdrReferenceWhiteNits: Double = 500,
         defaultTargetNits: Double = 800,
         userMaximumTargetNits: Double = 800,
-        onBatteryCapNits: Double = 700,
+        onBatteryCapNits: Double = 800,
         lowBatteryCapNits: Double = 600,
         thermalSeriousCapNits: Double = 650,
         lowBatteryThreshold: Double = 0.30,

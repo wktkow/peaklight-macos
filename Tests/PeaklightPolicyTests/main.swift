@@ -47,9 +47,9 @@ private func runPolicyChecks() {
         let controller = BrightnessController(initialEDRHeadroom: 2.0)
         controller.setPreset(.eightHundred)
         controller.updatePowerSource(.battery(level: 0.75))
-        checkEqual(controller.state.effectiveTargetNits, 700, "battery cap limits 800 nit preset to 700")
-        checkEqual(controller.state.boostFactor, 1.4, "battery cap maps to 1.4x")
-        check(controller.state.capReasons.contains(.battery), "battery cap reason is reported")
+        checkEqual(controller.state.effectiveTargetNits, 800, "battery power does not reduce the default 800 nit cap")
+        checkEqual(controller.state.boostFactor, 1.6, "battery power keeps 800 nit preset at 1.6x")
+        check(!controller.state.capReasons.contains(.battery), "battery cap reason is omitted when it does not lower the cap")
     }
 
     do {

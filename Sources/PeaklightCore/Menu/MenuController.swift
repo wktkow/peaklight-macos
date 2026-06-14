@@ -75,7 +75,7 @@ public final class MenuController: NSObject {
 
         let displayTitle = latestDisplays.isEmpty
             ? "Displays: none detected"
-            : "Displays: \(latestDisplays.map(\.name).joined(separator: ", "))"
+            : "Displays: \(latestDisplays.map(displayDescription).joined(separator: ", "))"
         let displayItem = NSMenuItem(title: displayTitle, action: nil, keyEquivalent: "")
         displayItem.isEnabled = false
         menu.addItem(displayItem)
@@ -203,6 +203,14 @@ public final class MenuController: NSObject {
     @objc private func quit() {
         onQuit?()
     }
+}
+
+private func displayDescription(_ display: DisplaySnapshot) -> String {
+    guard display.isEDRCapable else {
+        return "\(display.name) (SDR)"
+    }
+
+    return "\(display.name) (EDR \(String(format: "%.1fx", display.boostEDRHeadroom)))"
 }
 
 private extension BrightnessCapReason {

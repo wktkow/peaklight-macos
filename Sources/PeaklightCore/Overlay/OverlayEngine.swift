@@ -30,7 +30,7 @@ public final class OverlayEngine {
                 continue
             }
 
-            let perScreenBoost = min(boostFactor, snapshot.usableEDRHeadroom)
+            let perScreenBoost = min(boostFactor, snapshot.boostEDRHeadroom)
             guard perScreenBoost > 1.0001 else {
                 skippedNames.append(snapshot.name)
                 continue
@@ -107,9 +107,9 @@ private final class ScreenOverlay {
         view.framebufferOnly = true
         view.clearColor = Self.clearColor(for: boostFactor)
         view.colorspace = CGColorSpace(name: CGColorSpace.extendedLinearDisplayP3)
-        view.preferredFramesPerSecond = 1
-        view.enableSetNeedsDisplay = true
-        view.isPaused = true
+        view.preferredFramesPerSecond = 10
+        view.enableSetNeedsDisplay = false
+        view.isPaused = false
         view.wantsLayer = true
 
         guard let renderer = ConstantColorRenderer(device: device, boostFactor: boostFactor) else {
@@ -134,7 +134,6 @@ private final class ScreenOverlay {
         self.view = view
         self.renderer = renderer
 
-        draw()
     }
 
     func update(screen: NSScreen, boostFactor: Double) {
@@ -146,17 +145,11 @@ private final class ScreenOverlay {
 
         view.clearColor = Self.clearColor(for: boostFactor)
         renderer.update(boostFactor: boostFactor)
-        draw()
     }
 
     func close() {
         window.orderOut(nil)
         window.close()
-    }
-
-    private func draw() {
-        view.needsDisplay = true
-        view.draw()
     }
 
     private static func clearColor(for boostFactor: Double) -> MTLClearColor {

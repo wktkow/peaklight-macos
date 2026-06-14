@@ -47,6 +47,14 @@ swift run PeaklightPolicyTests
 
 Those commands build and test the source only. They do not install Peaklight, register launch-at-login, launch the app, or modify your system display configuration.
 
+To build a release app bundle and install it into `~/Applications`:
+
+```sh
+Scripts/package-app.sh
+```
+
+Set `INSTALL_DIR=/Applications` if you want a system-wide install instead.
+
 ## Current Scope
 
 Implemented:

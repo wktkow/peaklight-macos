@@ -30,6 +30,10 @@ let package = Package(
             name: "PeaklightPolicyTests",
             dependencies: ["PeaklightCore"],
             path: "Tests/PeaklightPolicyTests"
+        ),
+        .testTarget(
+            name: "PeaklightCoreTests",
+            dependencies: ["PeaklightCore"]
         )
     ]
 )

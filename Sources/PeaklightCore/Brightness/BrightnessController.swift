@@ -105,13 +105,11 @@ public final class BrightnessController {
         var effectiveCap = policy.userMaximumTargetNits
         var reasons: [BrightnessCapReason] = []
 
-        if desiredTargetNits >= policy.userMaximumTargetNits {
-            reasons.append(.userMaximum)
-        }
-
         if batteryCapsEnabled, powerSource.isOnBattery {
-            effectiveCap = min(effectiveCap, policy.onBatteryCapNits)
-            reasons.append(.battery)
+            if policy.onBatteryCapNits < effectiveCap {
+                effectiveCap = min(effectiveCap, policy.onBatteryCapNits)
+                reasons.append(.battery)
+            }
 
             if let level = powerSource.batteryLevel {
                 if level <= policy.criticalBatteryThreshold {
