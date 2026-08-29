@@ -161,6 +161,17 @@ final class WhiteDimmingPolicyTests: XCTestCase {
     }
 
     XCTAssertTrue(WhiteDimmingBackdropRuntime.isGraphSupported)
+    let colorMap = try XCTUnwrap(WhiteDimmingBackdropMaskLUT().makeImage())
+    let backdropLayer = try XCTUnwrap(
+      WhiteDimmingBackdropRuntime.makeBackdropLayer(colorMap: colorMap)
+    )
+    XCTAssertTrue(
+      WhiteDimmingBackdropRuntime.backdropFilterCacheIsDisabled(
+        on: backdropLayer
+      )
+    )
+    backdropLayer.filters = nil
+
     let controller = WhiteDimmingBackdropController(initialAmount: 0.5)
     XCTAssertEqual(controller.state, .disabled)
     XCTAssertEqual(controller.activeSessionCountForTesting, 0)

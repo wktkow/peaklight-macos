@@ -135,6 +135,7 @@ enum WhiteDimmingBackdropRuntime {
   static let qualifiedKernelBuild = "25F84"
 
   private static let requiredBackdropSetters = [
+    "setDisableFilterCache:",
     "setWindowServerAware:",
     "setGroupName:",
     "setScale:",
@@ -225,7 +226,9 @@ enum WhiteDimmingBackdropRuntime {
     }
 
     let layer = layerType.init()
-    guard PeaklightTrySetValueForKey(layer, true, "windowServerAware"),
+    guard PeaklightTrySetValueForKey(layer, true, "disableFilterCache"),
+      backdropFilterCacheIsDisabled(on: layer),
+      PeaklightTrySetValueForKey(layer, true, "windowServerAware"),
       PeaklightTrySetValueForKey(
         layer,
         "NSCGSWindowBehindWindowCaptureBackdropGroup",
@@ -248,6 +251,20 @@ enum WhiteDimmingBackdropRuntime {
     layer.backgroundColor = CGColor.clear
     layer.masksToBounds = true
     return layer
+  }
+
+  /// Backdrop caching can replay a stale WindowServer surface during motion,
+  /// which is especially visible when the selected highlights approach black.
+  /// Verify the private control after writing it so an incompatible runtime
+  /// fails open instead of presenting cached frames.
+  static func backdropFilterCacheIsDisabled(on layer: CALayer) -> Bool {
+    guard
+      let value = PeaklightTryValueForKey(layer, "disableFilterCache")
+        as? NSNumber
+    else {
+      return false
+    }
+    return value.boolValue
   }
 
   private static var currentBuildIsQualified: Bool {
