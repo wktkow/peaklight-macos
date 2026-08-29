@@ -1,3 +1,4 @@
+import Foundation
 import XCTest
 @testable import PeaklightCore
 
@@ -85,5 +86,21 @@ final class BrightnessControllerTests: XCTestCase {
         XCTAssertEqual(controller.state.effectiveTargetNits, 625, accuracy: 0.001)
         XCTAssertEqual(controller.state.boostFactor, 1.25, accuracy: 0.001)
         XCTAssertTrue(controller.state.capReasons.contains(.edrHeadroom))
+    }
+
+    func testRemovedWhiteDimmingPreferenceFailsClosedToCleanMode() {
+        let suiteName = "PeaklightCoreTests.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+        defaults.set("whiteDimming", forKey: "boostMode")
+        defaults.set(0.7, forKey: "whiteDimmingWhiteLevel")
+        defaults.set(true, forKey: "lastSessionExitedCleanly")
+
+        let settings = PeaklightSettings(defaults: defaults)
+
+        XCTAssertEqual(settings.boostMode, .clean)
+        XCTAssertNil(BoostMode(rawValue: "whiteDimming"))
+        XCTAssertNil(defaults.object(forKey: "whiteDimmingWhiteLevel"))
+        XCTAssertNil(defaults.object(forKey: "lastSessionExitedCleanly"))
     }
 }
