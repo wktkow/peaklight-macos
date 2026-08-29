@@ -7,10 +7,16 @@ public enum WhiteDimmingPolicy {
   public static let maximumAmount = 1.0
   public static let defaultAmount = 0.5
 
-  public static let whiteRampStart = 0.82
-  public static let whiteRampEnd = 0.97
-  public static let neutralRampStart = 0.03
-  public static let neutralRampEnd = 0.10
+  /// Start the highlight shoulder below common off-white UI materials and
+  /// finish it before reference white. A broad shoulder avoids visible mask
+  /// contours across gradients and antialiased edges.
+  public static let whiteRampStart = 0.72
+  public static let whiteRampEnd = 0.96
+
+  /// Preserve exact and strongly saturated colors while fading gently across
+  /// the small channel imbalances found in warm/cool whites.
+  public static let neutralRampStart = 0.035
+  public static let neutralRampEnd = 0.16
 
   public static func clampedAmount(_ amount: Double) -> Double {
     guard amount.isFinite else { return defaultAmount }
@@ -37,14 +43,22 @@ public enum WhiteDimmingPolicy {
     let minimum = min(red, green, blue)
     let maximum = max(red, green, blue)
 
-    let whiteness = smoothstep(
+    // Linear Display P3 luminance coefficients. Brightness and neutrality are
+    // deliberately separate: using the minimum component for both punished a
+    // slightly tinted white twice and exposed patchy holes in white surfaces.
+    let brightness =
+      0.228_974_56 * red
+      + 0.691_738_52 * green
+      + 0.079_286_91 * blue
+
+    let whiteness = smootherstep(
       edge0: whiteRampStart,
       edge1: whiteRampEnd,
-      value: minimum
+      value: brightness
     )
     let neutrality =
       1
-      - smoothstep(
+      - smootherstep(
         edge0: neutralRampStart,
         edge1: neutralRampEnd,
         value: maximum - minimum
@@ -64,7 +78,9 @@ public enum WhiteDimmingPolicy {
       * selectionMask(red: red, green: green, blue: blue)
   }
 
-  private static func smoothstep(
+  /// Quintic smoothstep has zero first and second derivatives at both ends,
+  /// making the LUT's selection shoulder less visible than a cubic cutoff.
+  private static func smootherstep(
     edge0: Double,
     edge1: Double,
     value: Double
@@ -72,6 +88,7 @@ public enum WhiteDimmingPolicy {
     guard value > edge0 else { return 0 }
     guard value < edge1 else { return 1 }
     let normalized = (value - edge0) / (edge1 - edge0)
-    return normalized * normalized * (3 - 2 * normalized)
+    return normalized * normalized * normalized
+      * (normalized * (normalized * 6 - 15) + 10)
   }
 }

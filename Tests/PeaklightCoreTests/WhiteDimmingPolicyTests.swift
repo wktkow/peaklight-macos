@@ -74,6 +74,50 @@ final class WhiteDimmingPolicyTests: XCTestCase {
     }
   }
 
+  func testWarmAndCoolOffWhitesEnterTheSoftSelectionShoulder() {
+    let warmWhite = WhiteDimmingPolicy.selectionMask(
+      red: 1,
+      green: 0.94,
+      blue: 0.90
+    )
+    let coolWhite = WhiteDimmingPolicy.selectionMask(
+      red: 0.90,
+      green: 0.95,
+      blue: 1
+    )
+
+    XCTAssertGreaterThan(warmWhite, 0.25)
+    XCTAssertGreaterThan(coolWhite, 0.25)
+    XCTAssertLessThan(warmWhite, 0.75)
+    XCTAssertLessThan(coolWhite, 0.75)
+  }
+
+  func testNeutralHighlightShoulderIsSmoothAndMonotonic() {
+    var previous = 0.0
+    var largestStep = 0.0
+    for index in 0...256 {
+      let value = Double(index) / 256
+      let mask = WhiteDimmingPolicy.selectionMask(
+        red: value,
+        green: value,
+        blue: value
+      )
+      XCTAssertGreaterThanOrEqual(mask, previous)
+      largestStep = max(largestStep, mask - previous)
+      previous = mask
+    }
+    XCTAssertLessThan(largestStep, 0.035)
+    XCTAssertEqual(previous, 1, accuracy: 0.000_001)
+  }
+
+  func testPastelBlueReachesZeroBeforeTheChromaBoundary() {
+    XCTAssertEqual(
+      WhiteDimmingPolicy.selectionMask(red: 0.84, green: 0.92, blue: 1),
+      0,
+      accuracy: 0.000_001
+    )
+  }
+
   func testHueNormalizedHDRSelectsNeutralWhiteButNotHDRColor() {
     XCTAssertEqual(
       WhiteDimmingPolicy.selectionMask(red: 4, green: 4, blue: 4),
