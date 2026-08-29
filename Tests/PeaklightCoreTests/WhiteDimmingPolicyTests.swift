@@ -193,6 +193,30 @@ final class WhiteDimmingPolicyTests: XCTestCase {
     )
   }
 
+  func testBackdropUpdateIntervalTracksTheDisplayRefreshRate() {
+    XCTAssertEqual(
+      WhiteDimmingBackdropRuntime.compositorUpdateInterval(
+        maximumFramesPerSecond: 120
+      ),
+      1.0 / 120.0,
+      accuracy: 0.000_000_001
+    )
+    XCTAssertEqual(
+      WhiteDimmingBackdropRuntime.compositorUpdateInterval(
+        maximumFramesPerSecond: 60
+      ),
+      1.0 / 60.0,
+      accuracy: 0.000_000_001
+    )
+    XCTAssertEqual(
+      WhiteDimmingBackdropRuntime.compositorUpdateInterval(
+        maximumFramesPerSecond: 0
+      ),
+      1.0 / 60.0,
+      accuracy: 0.000_000_001
+    )
+  }
+
   @MainActor
   func testQualifiedHostExposesTheCompleteCompositorGraph() throws {
     let version = ProcessInfo.processInfo.operatingSystemVersion
@@ -206,12 +230,25 @@ final class WhiteDimmingPolicyTests: XCTestCase {
 
     XCTAssertTrue(WhiteDimmingBackdropRuntime.isGraphSupported)
     let colorMap = try XCTUnwrap(WhiteDimmingBackdropMaskLUT().makeImage())
+    let updateInterval =
+      WhiteDimmingBackdropRuntime.compositorUpdateInterval(
+        maximumFramesPerSecond: 120
+      )
     let backdropLayer = try XCTUnwrap(
-      WhiteDimmingBackdropRuntime.makeBackdropLayer(colorMap: colorMap)
+      WhiteDimmingBackdropRuntime.makeBackdropLayer(
+        colorMap: colorMap,
+        maximumFramesPerSecond: 120
+      )
     )
     XCTAssertTrue(
       WhiteDimmingBackdropRuntime.backdropFilterCacheIsDisabled(
         on: backdropLayer
+      )
+    )
+    XCTAssertTrue(
+      WhiteDimmingBackdropRuntime.backdropUpdateInterval(
+        on: backdropLayer,
+        matches: updateInterval
       )
     )
     backdropLayer.filters = nil

@@ -136,10 +136,13 @@ enum WhiteDimmingBackdropRuntime {
 
   private static let requiredBackdropSetters = [
     "setDisableFilterCache:",
+    "setUpdateRate:",
     "setWindowServerAware:",
     "setGroupName:",
     "setScale:",
   ]
+
+  private static let fallbackFramesPerSecond = 60
 
   static func capability(
     backdropLayerAvailable: Bool,
@@ -188,7 +191,24 @@ enum WhiteDimmingBackdropRuntime {
     )
   }()
 
-  static func makeBackdropLayer(colorMap: CGImage) -> CALayer? {
+  /// `CABackdropLayer.updateRate` is an interval in seconds. Leaving its
+  /// default value at zero lets WindowServer update a static backdrop only
+  /// when its damage tracking happens to invalidate it, which can leave old
+  /// pixels visible behind moving windows.
+  static func compositorUpdateInterval(
+    maximumFramesPerSecond: Int
+  ) -> Double {
+    let framesPerSecond =
+      maximumFramesPerSecond > 0
+      ? maximumFramesPerSecond
+      : fallbackFramesPerSecond
+    return 1 / Double(framesPerSecond)
+  }
+
+  static func makeBackdropLayer(
+    colorMap: CGImage,
+    maximumFramesPerSecond: Int
+  ) -> CALayer? {
     guard isGraphSupported,
       let layerType = NSClassFromString("CABackdropLayer")
         as? CALayer.Type,
@@ -225,9 +245,17 @@ enum WhiteDimmingBackdropRuntime {
       return nil
     }
 
+    let updateInterval = compositorUpdateInterval(
+      maximumFramesPerSecond: maximumFramesPerSecond
+    )
     let layer = layerType.init()
     guard PeaklightTrySetValueForKey(layer, true, "disableFilterCache"),
       backdropFilterCacheIsDisabled(on: layer),
+      PeaklightTrySetValueForKey(layer, updateInterval, "updateRate"),
+      backdropUpdateInterval(
+        on: layer,
+        matches: updateInterval
+      ),
       PeaklightTrySetValueForKey(layer, true, "windowServerAware"),
       PeaklightTrySetValueForKey(
         layer,
@@ -265,6 +293,23 @@ enum WhiteDimmingBackdropRuntime {
       return false
     }
     return value.boolValue
+  }
+
+  /// Verify the private control after writing it so an incompatible runtime
+  /// cannot silently fall back to the stale, damage-driven update behavior.
+  static func backdropUpdateInterval(
+    on layer: CALayer,
+    matches expectedInterval: Double
+  ) -> Bool {
+    guard
+      let value = PeaklightTryValueForKey(layer, "updateRate")
+        as? NSNumber
+    else {
+      return false
+    }
+    let actualInterval = value.doubleValue
+    return actualInterval.isFinite
+      && abs(actualInterval - expectedInterval) <= 0.000_000_001
   }
 
   private static var currentBuildIsQualified: Bool {
@@ -668,7 +713,8 @@ public final class WhiteDimmingBackdropController {
       WhiteDimmingBackdropTopologyEntry(
         displayID: DisplayModel.screenID(for: screen),
         frame: screen.frame,
-        backingScaleFactor: screen.backingScaleFactor
+        backingScaleFactor: screen.backingScaleFactor,
+        maximumFramesPerSecond: screen.maximumFramesPerSecond
       )
     }.sorted {
       if $0.displayID == $1.displayID {
@@ -688,6 +734,7 @@ private struct WhiteDimmingBackdropTopologyEntry: Equatable {
   let displayID: CGDirectDisplayID
   let frame: CGRect
   let backingScaleFactor: CGFloat
+  let maximumFramesPerSecond: Int
 }
 
 @available(macOS 15.0, *)
@@ -714,7 +761,8 @@ private final class WhiteDimmingBackdropOutputWindow {
   init?(screen: NSScreen, colorMap: CGImage, amount: Double) {
     guard
       let backdropLayer = WhiteDimmingBackdropRuntime.makeBackdropLayer(
-        colorMap: colorMap
+        colorMap: colorMap,
+        maximumFramesPerSecond: screen.maximumFramesPerSecond
       )
     else {
       return nil
